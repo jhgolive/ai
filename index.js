@@ -19,7 +19,7 @@ function loadMemory(user) {
     const baseMemory = {
       name: "티티",
       chatHistory: [
-        { role: "system", content: "너의 이름은 티티야. 친절하고 간결하게 대답해." },
+        { role: "system", content: "너의 이름은 티티. 친절하고 간결하게 대답해." },
       ],
     };
     fs.writeFileSync(file, JSON.stringify(baseMemory, null, 2));
