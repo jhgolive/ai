@@ -18,6 +18,7 @@ function loadMemory(user) {
   } else {
     const baseMemory = {
       name: "티티",
+      userSet: false, // 유저 이름 시스템 메시지 추가 여부
       chatHistory: [
         { role: "system", content: "너의 이름은 티티. 친절하고 간결하게 대답해." },
       ],
@@ -43,6 +44,16 @@ app.get("/chat", async (req, res) => {
   if (!query) return res.send("query 파라미터가 필요합니다.");
 
   const memory = loadMemory(user);
+
+  // 유저 이름을 시스템 메시지로 한 번만 알려주기
+  if (!memory.userSet) {
+    memory.chatHistory.push({
+      role: "system",
+      content: `사용자 이름은 ${user}입니다.`
+    });
+    memory.userSet = true;
+  }
+
   memory.chatHistory.push({ role: "user", content: `${user}: ${query}` });
 
   try {
@@ -74,7 +85,7 @@ app.get("/chat", async (req, res) => {
 app.get("/setname", (req, res) => {
   const user = req.query.user?.trim();
   const newName = req.query.name?.trim();
-  if (!user || !newName) return res.send("예: /setname?user=쩡햄Live&name=티티");
+  if (!user || !newName) return res.send("예: /setname?user=쩡햄&name=티티");
 
   const memory = loadMemory(user);
   memory.name = newName;
@@ -87,7 +98,7 @@ app.get("/setname", (req, res) => {
 // 기억 초기화
 app.get("/forget", (req, res) => {
   const user = req.query.user?.trim();
-  if (!user) return res.send("예: /forget?user=쩡햄Live");
+  if (!user) return res.send("예: /forget?user=쩡햄");
 
   const file = path.join(MEMORY_DIR, `${user}.json`);
   if (fs.existsSync(file)) fs.unlinkSync(file);
