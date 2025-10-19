@@ -20,7 +20,7 @@ function loadMemory(user) {
       name: "티티",
       userSet: false, // 유저 이름 시스템 메시지 추가 여부
       chatHistory: [
-        { role: "system", content: "너의 이름은 티티. 친절하고 간결하게 대답해." },
+        { role: "system", content: "너의 이름은 티티. 간결하게 대답해." },
       ],
     };
     fs.writeFileSync(file, JSON.stringify(baseMemory, null, 2));
