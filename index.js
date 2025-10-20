@@ -57,6 +57,9 @@ app.get("/chat", async (req, res) => {
   memory.chatHistory.push({ role: "user", content: `${user}: ${query}` });
 
   try {
+    // 최근 5개의 메시지만 OpenAI API로 전송
+    const recentMessages = memory.chatHistory.slice(-5);
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -65,7 +68,7 @@ app.get("/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: memory.chatHistory,
+        messages: recentMessages,
       }),
     });
     const data = await response.json();
