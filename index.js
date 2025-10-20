@@ -109,4 +109,21 @@ app.get("/forget", (req, res) => {
   res.send(`${user}님의 기억이 초기화되었습니다.`);
 });
 
+// 모든 유저 기억 초기화
+app.get("/forgetall", (req, res) => {
+  if (!fs.existsSync(MEMORY_DIR)) {
+    return res.send("기억 디렉토리가 존재하지 않습니다.");
+  }
+
+  const files = fs.readdirSync(MEMORY_DIR);
+  files.forEach(file => {
+    const filePath = path.join(MEMORY_DIR, file);
+    if (fs.lstatSync(filePath).isFile()) {
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  res.send("모든 유저의 기억이 초기화되었습니다.");
+});
+
 app.listen(3000, () => console.log("✅ Server started on port 3000"));
