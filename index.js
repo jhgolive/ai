@@ -10,7 +10,7 @@ app.use(express.json());
 const MEMORY_DIR = path.resolve("./memory");
 if (!fs.existsSync(MEMORY_DIR)) fs.mkdirSync(MEMORY_DIR);
 
-// 유저별 기억 불러오기
+// 🔹 유저별 기억 불러오기
 function loadMemory(user) {
   const file = path.join(MEMORY_DIR, `${user}.json`);
   if (fs.existsSync(file)) {
@@ -28,7 +28,7 @@ function loadMemory(user) {
   }
 }
 
-// 기억 저장
+// 🔹 기억 저장
 function saveMemory(user, memory) {
   const file = path.join(MEMORY_DIR, `${user}.json`);
   fs.writeFileSync(file, JSON.stringify(memory, null, 2));
@@ -36,7 +36,7 @@ function saveMemory(user, memory) {
 
 app.get("/", (req, res) => res.send("🧠 Nightbot AI Memory Server Running"));
 
-// AI 채팅
+// 🔹 AI 채팅
 app.get("/chat", async (req, res) => {
   const user = req.query.user?.trim();
   const query = req.query.query?.trim();
@@ -45,18 +45,26 @@ app.get("/chat", async (req, res) => {
 
   const memory = loadMemory(user);
 
+  // 사용자 이름을 시스템 메시지로 알려주기 (한 번만)
   if (!memory.userSet) {
     memory.chatHistory.push({
       role: "system",
-      content: `사용자 이름은 ${user}입니다.`,
+      content: `사용자 이름은 ${user}.`,
     });
     memory.userSet = true;
   }
 
+  // 유저 발화 추가
   memory.chatHistory.push({ role: "user", content: `${user}: ${query}` });
 
   try {
-    const recentMessages = memory.chatHistory.slice(-3); // 이전 대화 3개 보내기
+    // 🔸 시스템 메시지는 항상 유지, 최근 대화는 1개만 사용
+    const systemMessages = memory.chatHistory.filter(m => m.role === "system");
+    const recentUserMessages = memory.chatHistory
+      .filter(m => m.role !== "system")
+      .slice(-1);
+    const recentMessages = [...systemMessages, ...recentUserMessages];
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -71,14 +79,21 @@ app.get("/chat", async (req, res) => {
 
     const data = await response.json();
     if (data.error) {
-      console.error(data.error);
+      console.error("❌ OpenAI 오류:", data.error);
       return res.send("❌ OpenAI 오류: " + data.error.message);
     }
 
     const answer = data.choices?.[0]?.message?.content || "응답이 없습니다.";
     memory.chatHistory.push({ role: "assistant", content: answer });
-    saveMemory(user, memory);
 
+    // 🔸 최근 대화가 너무 길어지면 30개까지만 저장
+    if (memory.chatHistory.length > 30) {
+      const systemOnly = memory.chatHistory.filter(m => m.role === "system");
+      const latest = memory.chatHistory.filter(m => m.role !== "system").slice(-20);
+      memory.chatHistory = [...systemOnly, ...latest];
+    }
+
+    saveMemory(user, memory);
     res.send(answer);
   } catch (err) {
     console.error(err);
@@ -86,7 +101,7 @@ app.get("/chat", async (req, res) => {
   }
 });
 
-// 이름 변경
+// 🔹 이름 변경
 app.get("/setname", (req, res) => {
   const user = req.query.user?.trim();
   const newName = req.query.name?.trim();
@@ -103,7 +118,7 @@ app.get("/setname", (req, res) => {
   res.send(`${user}님의 AI 이름이 "${newName}"로 설정되었습니다.`);
 });
 
-// 기억 초기화
+// 🔹 기억 초기화 (특정 유저)
 app.get("/forget", (req, res) => {
   const user = req.query.user?.trim();
   if (!user) return res.send("예: /forget?user=쩡햄");
@@ -114,7 +129,7 @@ app.get("/forget", (req, res) => {
   res.send(`${user}님의 기억이 초기화되었습니다.`);
 });
 
-// 모든 기억 초기화
+// 🔹 모든 유저 기억 초기화
 app.get("/forgetall", (req, res) => {
   if (!fs.existsSync(MEMORY_DIR)) return res.send("기억 디렉토리가 존재하지 않습니다.");
 
