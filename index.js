@@ -56,7 +56,7 @@ app.get("/chat", async (req, res) => {
   memory.chatHistory.push({ role: "user", content: `${user}: ${query}` });
 
   try {
-    const recentMessages = memory.chatHistory.slice(-1); // 이전 대화 1개 보내기
+    const recentMessages = memory.chatHistory.slice(-2); // 이전 대화 2개 보내기
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
