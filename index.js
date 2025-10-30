@@ -1,3 +1,4 @@
+// https://platform.openai.com/account/api-keys aiapi키발급해서 railway에 Environment Variables 탭에 OPENAI_API_KEY=KEY값을 넣는다
 import express from "express";
 import fetch from "node-fetch";
 import fs from "fs";
