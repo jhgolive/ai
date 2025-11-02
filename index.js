@@ -42,7 +42,7 @@ app.get("/chat", async (req, res) => {
   const user = req.query.user?.trim();
   const query = req.query.query?.trim();
   if (!user) return res.send("user 파라미터가 필요합니다.");
-  if (!query) return res.send("query 파라미터가 필요합니다.");
+  if (!query) return res.send("${user}님, 불렀나요?");
 
   const memory = loadMemory(user);
 
